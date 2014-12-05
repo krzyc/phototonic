@@ -3,7 +3,7 @@ TARGET = phototonic
 INCLUDEPATH += .
 INCLUDEPATH += /usr/local/include
 LIBS += -L/usr/local/lib -lexiv2
-QT += widgets
+QT += widgets sql
 
 QMAKE_CXXFLAGS += $$(CXXFLAGS)
 QMAKE_CFLAGS += $$(CFLAGS)

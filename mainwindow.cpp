@@ -25,6 +25,35 @@
 Phototonic::Phototonic(QWidget *parent) : QMainWindow(parent)
 {
 	GData::appSettings = new QSettings("phototonic", "phototonic_103");
+
+    // open database and create tables
+	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "phototonic");
+	db.setDatabaseName("phototonic.db3");
+	if (db.open()) {
+        QSqlQuery q(db);
+        q.exec((QString)"CREATE TABLE IF NOT EXISTS `option_group` (" +
+            "`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+            "`name`	TEXT NOT NULL);");
+        q.exec((QString)"CREATE TABLE IF NOT EXISTS `option` (" +
+            "`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+            "`group_id`	INTEGER," +
+            "`name`	TEXT NOT NULL);");
+        q.exec((QString)"CREATE TABLE IF NOT EXISTS `image` (" +
+            "`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+            "`file`	TEXT NOT NULL," +
+            "`label`	TEXT," +
+            "`description`	TEXT," +
+            "`tags`	TEXT," +
+            "`date`	TEXT," +
+            "`md5sum`	NUMERIC," +
+            "`width`	INTEGER," +
+            "`height`	INTEGER," +
+            "`rating`	INTEGER);");
+        q.exec((QString)"CREATE TABLE IF NOT EXISTS `image_option` (" +
+            "`image_id`	INTEGER NOT NULL," +
+            "`option_id`	INTEGER NOT NULL);");
+	}
+
 	readSettings();
 	createThumbView();
 	createActions();

@@ -25,6 +25,7 @@
 #include <QColor>
 #include <QAction>
 #include <QSet>
+#include <QtSql/QtSql>
 
 namespace GData
 {
