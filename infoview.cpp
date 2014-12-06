@@ -28,12 +28,13 @@ InfoView::InfoView(QWidget *parent) : QTableView(parent)
 	horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	setShowGrid(false);
 
-	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setEditTriggers(QAbstractItemView::DoubleClicked);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setTabKeyNavigation(false);
 
 	infoModel = new QStandardItemModel(this);
 	setModel(infoModel);
+	connect(infoModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), this, SLOT(dataChanged(QModelIndex, QModelIndex)));
 
 	// InfoView menu
 	infoMenu = new QMenu("");
@@ -56,27 +57,40 @@ void InfoView::clear()
 	infoModel->clear();
 }
 
-void InfoView::addEntry(QString &key, QString &value)
+void InfoView::addEntry(QString &title, QString &value, const QString &key)
 {
+	lockInfoChanged = true;
 	int atRow = infoModel->rowCount();
-	QStandardItem *itemKey = new QStandardItem(key);
-	infoModel->insertRow(atRow, itemKey);
-	if (!value.isEmpty()) {
-		QStandardItem *itemVal = new QStandardItem(value);
-		itemVal->setToolTip(value);
-		infoModel->setItem(atRow, 1, itemVal);
+	QStandardItem *itemTitle = new QStandardItem(title);
+	itemTitle->setEditable(false);
+	infoModel->insertRow(atRow, itemTitle);
+	QStandardItem *itemVal = new QStandardItem(value);
+	if (!key.isEmpty()) {
+		itemVal->setData(key);
+		itemVal->setEditable(true);
+	} else {
+		itemVal->setEditable(false);
 	}
+	itemVal->setToolTip(value);
+	infoModel->setItem(atRow, 1, itemVal);
+	lockInfoChanged = false;
 }
 
 void InfoView::addTitleEntry(QString title)
 {
+	lockInfoChanged = true;
 	int atRow = infoModel->rowCount();
-	QStandardItem *itemKey = new QStandardItem(title);
-	infoModel->insertRow(atRow, itemKey);
+	QStandardItem *itemTitle = new QStandardItem(title);
+	itemTitle->setEditable(false);
+	infoModel->insertRow(atRow, itemTitle);
+	QStandardItem *itemVal = new QStandardItem();
+	itemVal->setEditable(false);
+	infoModel->setItem(atRow, 1, itemVal);
 
 	QFont boldFont;
 	boldFont.setBold(true);
-    itemKey->setData(boldFont, Qt::FontRole);
+	itemTitle->setData(boldFont, Qt::FontRole);
+	lockInfoChanged = false;
 }
 
 void InfoView::copyEntry()
@@ -85,3 +99,14 @@ void InfoView::copyEntry()
 		QApplication::clipboard()->setText(infoModel->itemFromIndex(selectedEntry)->toolTip());
 }
 
+void InfoView::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+{
+	if (!lockInfoChanged) {
+		QStandardItem *item = infoModel->item(topLeft.row(), topLeft.column());
+		if ((QMetaType::Type)item->data().type() == QMetaType::QString) {
+			// qDebug() << item->data().toString() << item->text();
+			item->setToolTip(item->text());
+			emit infoChanged(item->data().toString(), item->text());
+		}
+	}
+}

@@ -28,19 +28,23 @@ class InfoView : public QTableView
 public:
 	InfoView(QWidget *parent);
 	void clear();
-	void addEntry(QString &key, QString &value);
+	void addEntry(QString &title, QString &value, const QString &key = "");
 	void addTitleEntry(QString title);
 
 public slots:
 	void showInfoViewMenu(QPoint pt);
 	void copyEntry();
+	void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
 private:
 	QStandardItemModel *infoModel;
 	QModelIndex selectedEntry;
 	QMenu *infoMenu;
 	QAction *copyAction;
+	bool lockInfoChanged;
 
+signals:
+	void infoChanged(QString key, QString value);
 };
 
 #endif // INFOVIEW_H

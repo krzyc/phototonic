@@ -61,6 +61,7 @@ ThumbView::ThumbView(QWidget *parent) : QListView(parent)
 	qsrand((uint)time.msec());
 	mainWindow = parent;
 	infoView = new InfoView(this);
+	connect(infoView, SIGNAL(infoChanged(QString,QString)), this, SLOT(updateUserFields(QString,QString)));
 }
 
 void ThumbView::setThumbColors()
@@ -235,6 +236,7 @@ void ThumbView::handleSelectionChanged(const QItemSelection&)
 	QString imageFullPath;
 
 	infoView->clear();
+	currentId = 0;
 
 	if (nSelected == 1) {
 		QString imageFullPath = thumbViewModel->item(indexesList.first().row())->data(FileNameRole).toString();
@@ -276,8 +278,77 @@ void ThumbView::handleSelectionChanged(const QItemSelection&)
 			val = QString::number((imageInfoReader.size().width() * imageInfoReader.size().height()) / 1000000.0, 'f', 2);
 			infoView->addEntry(key, val);
 
+			// calculate md5
+			QCryptographicHash crypto(QCryptographicHash::Md5);
+			QFile file(imageFullPath);
+			file.open(QFile::ReadOnly);
+			while(!file.atEnd()){
+				crypto.addData(file.read(8192));
+			}
+			QByteArray hash = crypto.result();
+			key = tr("MD5 sum");
+			val = hash.toHex();
+			infoView->addEntry(key, val);
+
+			// add EXIF info
 			updateExifInfo(imageFullPath);
 			recentThumb = imageFullPath;
+
+			// update database
+			infoView->addTitleEntry(tr("User"));
+			QSqlDatabase db = QSqlDatabase::database("phototonic");
+			QSqlQuery query(db);
+			query.exec((QString)"SELECT id, label, description, rating, tags FROM image WHERE file = '" + imageFullPath + "'");
+			if (query.next()) {
+				currentId = query.value(0).toInt();
+				key = tr("Label");
+				val = query.value(1).toString();
+				infoView->addEntry(key, val, "label");
+				key = tr("Description");
+				val = query.value(2).toString();
+				infoView->addEntry(key, val, "description");
+				key = tr("Rating");
+				val = query.value(3).toString();
+				infoView->addEntry(key, val, "rating");
+				key = tr("Tags");
+				val = query.value(4).toString();
+				infoView->addEntry(key, val, "tags");
+			} else {
+				key = tr("Label");
+				val = imageInfo.fileName();
+				infoView->addEntry(key, val, "label");
+				val = "";
+				key = tr("Description");
+				infoView->addEntry(key, val, "description");
+				val = "";
+				key = tr("Rating");
+				infoView->addEntry(key, val, "rating");
+				val = "";
+				key = tr("Tags");
+				infoView->addEntry(key, val, "tags");
+			}
+			if (!currentId) {
+				val = (QString)"INSERT INTO image (file, label, date, md5sum, width, height) VALUES (" +
+					"'" + imageFullPath + "', " +
+					"'" + imageInfo.fileName() + "', " +
+					"'"+ imageInfo.lastModified().toString("yyyy-MM-dd hh:mm:ss") +"', " +
+					"'" + hash.toHex() + "', " +
+					QString::number(imageInfoReader.size().width()) + ", " +
+					QString::number(imageInfoReader.size().height()) + ")";
+				if (query.exec(val))
+				{
+					currentId = query.lastInsertId().toInt();
+				}
+			} else {
+				val = (QString)"UPDATE image SET " +
+					"date = '" + imageInfo.lastModified().toString("yyyy-MM-dd hh:mm:ss") + "', " +
+					"md5sum = '" + hash.toHex() + "', " +
+					"width = " + QString::number(imageInfoReader.size().width()) + ", " +
+					"height = " + QString::number(imageInfoReader.size().height()) +
+					" WHERE id = " + QString::number(currentId);
+				query.exec(val);
+			}
+			qDebug() << val;
 		} else {
 			imageInfoReader.read();
 			key = tr("Error");
@@ -286,6 +357,17 @@ void ThumbView::handleSelectionChanged(const QItemSelection&)
 		}
 	}
 	updateThumbsSelection();
+}
+
+void ThumbView::updateUserFields(QString key,QString value)
+{
+	QSqlDatabase db = QSqlDatabase::database("phototonic");
+	QSqlQuery query(db);
+	QString val = (QString)"UPDATE image SET " +
+		key + " = '" + value + "'" +
+		" WHERE id = " + QString::number(currentId);
+	qDebug() << val;
+	query.exec(val);
 }
 
 void ThumbView::startDrag(Qt::DropActions)
@@ -568,6 +650,7 @@ void ThumbView::initThumbs()
 	for (currThumb = 0; currThumb < thumbFileInfoList.size(); ++currThumb)
 	{
 		thumbFileInfo = thumbFileInfoList.at(currThumb);
+		// qDebug() << thumbFileInfo.fileName();
 		thumbIitem = new QStandardItem();
 		thumbIitem->setData(false, LoadedRole);
 		thumbIitem->setData(currThumb, SortRole);

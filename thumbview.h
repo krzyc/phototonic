@@ -102,6 +102,7 @@ private:
 	QImageReader imageInfoReader;
 	QWidget *mainWindow;
 	QMap<QString, DuplicateImage> dupImageHashes;
+	int currentId;
 	
 	bool abortOp;
 	int newIndex;
@@ -129,6 +130,7 @@ public slots:
 	void loadVisibleThumbs(int scrollBarValue = 0);
 	void handleSelectionChanged(const QItemSelection& selection);
 	void invertSelection();
+	void updateUserFields(QString key,QString value);
 
 private slots:
 	void loadThumbsRange();
