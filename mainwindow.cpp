@@ -843,6 +843,7 @@ void Phototonic::createFSTree()
 	fsTab->setTabPosition(QTabWidget::West);
 
 	fsDock = new QDockWidget(tr("Location"), this);
+	fsDock->setObjectName("Location");
 	fsDock->setWidget(fsTab);
 
 	fsTree = new FSTree(fsTab);
@@ -874,6 +875,12 @@ void Phototonic::createFSTree()
 				this, SLOT(dropOp(Qt::KeyboardModifiers, bool, QString)));
 
 	fsTree->setCurrentIndex(fsTree->fsModel->index(QDir::currentPath()));
+
+	dbTree = new DBTree(fsTab);
+	fsTab->addTab(dbTree, tr("Database"));
+
+	connect(dbTree, SIGNAL(clicked(const QModelIndex&)),
+				this, SLOT(goSelectedDbItem(const QModelIndex &)));
 }
 
 void Phototonic::createBookmarks()
@@ -1713,6 +1720,13 @@ void Phototonic::goSelectedDir(const QModelIndex &idx)
 	thumbView->currentViewDir = getSelectedPath();
 	refreshThumbs(true);
 	fsTree->expand(idx);
+}
+
+void Phototonic::goSelectedDbItem(const QModelIndex &item)
+{
+	QModelIndex sel = dbTree->selectionModel()->currentIndex();
+	qDebug() << dbTree->dbModel->itemFromIndex(sel)->text() << "selected";
+	dbTree->expand(sel);
 }
 
 void Phototonic::goPathBarDir()

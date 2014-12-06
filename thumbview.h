@@ -23,6 +23,7 @@
 #include <exiv2/exiv2.hpp>
 #include "global.h"
 #include "fstree.h"
+#include "dbtree.h"
 #include "bookmarks.h"
 #include "infoview.h"
 #include "imageview.h"

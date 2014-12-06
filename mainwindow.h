@@ -70,6 +70,7 @@ private slots:
 	void createSubDirectory();
 	void checkDirState(const QModelIndex &, int, int);
 	void goSelectedDir(const QModelIndex &currDir);
+	void goSelectedDbItem(const QModelIndex &currItem);
 	void bookmarkClicked(QTreeWidgetItem *item, int col);
 	void goPathBarDir();
 	void setThumbsFilter();
@@ -280,6 +281,7 @@ private:
 	QDockWidget *bmDock;
 	QDockWidget *pvDock;
 	FSTree *fsTree;
+	DBTree *dbTree;
 	BookMarks *bookmarks;
 	QHBoxLayout *mainLayout;
 	QDockWidget *iiDock;
