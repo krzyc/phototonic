@@ -276,6 +276,7 @@ private:
 	QCompleter *pathComplete;
 	QLabel *stateLabel;
 	QDockWidget *fsDock;
+	QTabWidget *fsTab;
 	QDockWidget *bmDock;
 	QDockWidget *pvDock;
 	FSTree *fsTree;

@@ -839,11 +839,15 @@ void Phototonic::createStatusBar()
 
 void Phototonic::createFSTree()
 {
-	fsDock = new QDockWidget(tr("File System"), this);
-	fsDock->setObjectName("File System");
+	fsTab = new QTabWidget();
+	fsTab->setTabPosition(QTabWidget::West);
 
-	fsTree = new FSTree(fsDock);
-	fsDock->setWidget(fsTree);
+	fsDock = new QDockWidget(tr("Location"), this);
+	fsDock->setWidget(fsTab);
+
+	fsTree = new FSTree(fsTab);
+	fsTab->addTab(fsTree, tr("File System"));
+
 	connect(fsDock->toggleViewAction(), SIGNAL(triggered()), this, SLOT(setFsDockVisibility()));	
 	connect(fsDock, SIGNAL(visibilityChanged(bool)), this, SLOT(setFsDockVisibility()));	
 	addDockWidget(Qt::LeftDockWidgetArea, fsDock);
