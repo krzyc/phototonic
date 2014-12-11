@@ -517,8 +517,8 @@ void Phototonic::createActions()
 	showClipboardAction->setIcon(QIcon::fromTheme("insert-image", QIcon(":/images/new.png")));
 	connect(showClipboardAction, SIGNAL(triggered()), this, SLOT(newImage()));
 
-	openWithSubMenu = new QMenu(tr("Open With"));
-	openWithMenuAct = new QAction(tr("Open With"), this);
+	openWithSubMenu = new QMenu(tr("Open With..."));
+	openWithMenuAct = new QAction(tr("Open With..."), this);
 	openWithMenuAct->setMenu(openWithSubMenu);
 	chooseAppAct = new QAction(tr("Manage External Applications"), this);
 	connect(chooseAppAct, SIGNAL(triggered()), this, SLOT(chooseExternalApp()));
@@ -1041,7 +1041,7 @@ void Phototonic::cleanupSender()
 void Phototonic::externalAppError()
 {
 	QMessageBox msgBox;
-	msgBox.critical(this, tr("Error"), tr("Failed to start external application"));
+	msgBox.critical(this, tr("Error"), tr("Failed to start external application."));
 }
 
 void Phototonic::runExternalApp()
@@ -1065,7 +1065,7 @@ void Phototonic::runExternalApp()
 			QModelIndexList selectedIdxList = thumbView->selectionModel()->selectedIndexes();
 			if (selectedIdxList.size() < 1)
 			{
-				setStatus(tr("Invalid selection"));
+				setStatus(tr("Invalid selection."));
 				return;
 			}
 
@@ -1250,7 +1250,7 @@ void Phototonic::copyMoveImages(bool move)
 
 			if (!res) {
 				QMessageBox msgBox;
-				msgBox.critical(this, tr("Error"), tr("Failed to copy or move image"));
+				msgBox.critical(this, tr("Error"), tr("Failed to copy or move image."));
 			} else {
 				if (!copyMoveToDialog->copyOp) {
 					int currentRow = thumbView->getCurrentRow();
@@ -1295,7 +1295,7 @@ void Phototonic::zoomOut()
 	GData::imageZoomFactor -= (GData::imageZoomFactor <= 0.25)? 0 : 0.25;
 	imageView->tempDisableResize = false;
 	imageView->resizeImage();
-	imageView->setFeedback(tr("Zoom ") + QString::number(GData::imageZoomFactor * 100) + "%");
+	imageView->setFeedback(tr("Zoom %1%").arg(QString::number(GData::imageZoomFactor * 100)));
 }
 
 void Phototonic::zoomIn()
@@ -1303,7 +1303,7 @@ void Phototonic::zoomIn()
 	GData::imageZoomFactor += (GData::imageZoomFactor >= 3.50)? 0 : 0.25;
 	imageView->tempDisableResize = false;
 	imageView->resizeImage();
-	imageView->setFeedback(tr("Zoom ") + QString::number(GData::imageZoomFactor * 100) + "%");
+	imageView->setFeedback(tr("Zoom %1%").arg(QString::number(GData::imageZoomFactor * 100)));
 }
 
 void Phototonic::resetZoom()
@@ -1353,7 +1353,7 @@ void Phototonic::rotateLeft()
 	if (GData::rotation < 0)
 		GData::rotation = 270;
 	imageView->refresh();
-	imageView->setFeedback(tr("Rotation ") + QString::number(GData::rotation) + "\u00B0");
+	imageView->setFeedback(tr("Rotation %1°").arg(QString::number(GData::rotation)));
 }
 
 void Phototonic::rotateRight()
@@ -1362,7 +1362,7 @@ void Phototonic::rotateRight()
 	if (GData::rotation > 270)
 		GData::rotation = 0;
 	imageView->refresh();
-	imageView->setFeedback(tr("Rotation ") + QString::number(GData::rotation) + "\u00B0");
+	imageView->setFeedback(tr("Rotation %1°").arg(QString::number(GData::rotation)));
 }
 
 void Phototonic::flipVert()
@@ -1419,7 +1419,7 @@ void Phototonic::freeRotateLeft()
 	if (GData::rotation < 0)
 		GData::rotation = 359;
 	imageView->refresh();
-	imageView->setFeedback(tr("Rotation ") + QString::number(GData::rotation) + "\u00B0");
+	imageView->setFeedback(tr("Rotation %1°").arg(QString::number(GData::rotation)));
 }
 
 void Phototonic::freeRotateRight()
@@ -1428,7 +1428,7 @@ void Phototonic::freeRotateRight()
 	if (GData::rotation > 360)
 		GData::rotation = 1;
 	imageView->refresh();
-	imageView->setFeedback(tr("Rotation ") + QString::number(GData::rotation) + "\u00B0");
+	imageView->setFeedback(tr("Rotation %1°").arg(QString::number(GData::rotation)));
 }
 
 void Phototonic::showColorsDialog()
@@ -1559,7 +1559,7 @@ void Phototonic::pasteThumbs()
 		}
 	}
 
-	QString state = QString((GData::copyOp? tr("Copied ") : tr("Moved ")) + 
+	QString state = QString((GData::copyOp? tr("Copied") : tr("Moved")) + " " +
 								tr("%n image(s)", "", dialog->nfiles));
 	setStatus(state);
 	delete(dialog);
@@ -1617,7 +1617,7 @@ void Phototonic::deleteViewerImage()
 	QString fileName = fileInfo.fileName();
 
 	QMessageBox msgBox;
-	msgBox.setText(tr("Permanently delete ") + fileName);
+	msgBox.setText(tr("Permanently delete") + " " + fileName);
 	msgBox.setWindowTitle(tr("Delete image"));
 	msgBox.setIcon(QMessageBox::Warning);
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
@@ -1695,12 +1695,12 @@ void Phototonic::deleteOp()
 			else
 			{
 				QMessageBox msgBox;
-				msgBox.critical(this, tr("Error"), tr("Failed to delete image"));
+				msgBox.critical(this, tr("Error"), tr("Failed to delete image."));
 				return;
 			}
 		}
 		
-		QString state = QString(tr("Deleted ") + tr("%n image(s)", "", nfiles));
+		QString state = QString(tr("Deleted") + " " + tr("%n image(s)", "", nfiles));
 		setStatus(state);
 
 		thumbView->loadVisibleThumbs();
@@ -1738,7 +1738,7 @@ void Phototonic::goPathBarDir()
 	if (!checkPath.exists() || !checkPath.isReadable())
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Invalid Path: ") + pathBar->text());
+		msgBox.critical(this, tr("Error"), tr("Invalid Path:") + " " + pathBar->text());
 		pathBar->setText(thumbView->currentViewDir);
 		return;
 	}
@@ -2504,7 +2504,7 @@ void Phototonic::loadImagefromCli()
 	if(!imageFile.exists()) 
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to open file ") + cliFileName + tr(", file not found"));
+		msgBox.critical(this, tr("Error"), tr("Failed to open file \"%1\": file not found.").arg(cliFileName));
 		cliFileName = "";
 		return;
 	}
@@ -2812,13 +2812,13 @@ void Phototonic::dropOp(Qt::KeyboardModifiers keyMods, bool dirOp, QString cpMvD
 	}
 	
 	if (!isValidPath(destDir)) {
-		msgBox.critical(this, tr("Error"), tr("Can not move or copy images to this folder"));
+		msgBox.critical(this, tr("Error"), tr("Can not move or copy images to this folder."));
 		selectCurrentViewDir();
 		return;
 	}
 	
 	if (destDir == 	thumbView->currentViewDir) {
-		msgBox.critical(this, tr("Error"), tr("Destination folder is same as source"));
+		msgBox.critical(this, tr("Error"), tr("Destination folder is same as source."));
 		return;
 	}
 
@@ -2826,7 +2826,7 @@ void Phototonic::dropOp(Qt::KeyboardModifiers keyMods, bool dirOp, QString cpMvD
 		QString dirOnly = 
 			cpMvDirPath.right(cpMvDirPath.size() - cpMvDirPath.lastIndexOf(QDir::separator()) - 1);
 
-		QString question = tr("Move ") + dirOnly + tr(" to ") + destDir + "?";
+		QString question = tr("Move \"%1\" to \"%2\"?").arg(dirOnly).arg(destDir);
 		int ret = QMessageBox::question(this, tr("Move folder"), question,
 							QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
@@ -2835,7 +2835,7 @@ void Phototonic::dropOp(Qt::KeyboardModifiers keyMods, bool dirOp, QString cpMvD
 			bool ok = dir.rename(destDir + QDir::separator() + dirOnly);
 			if (!ok) {
 				QMessageBox msgBox;
-				msgBox.critical(this, tr("Error"), tr("Failed to move folder"));
+				msgBox.critical(this, tr("Error"), tr("Failed to move folder."));
 			}
 			setStatus(tr("Folder moved"));
 		}
@@ -2843,7 +2843,7 @@ void Phototonic::dropOp(Qt::KeyboardModifiers keyMods, bool dirOp, QString cpMvD
 		CpMvDialog *cpMvdialog = new CpMvDialog(this);
 		GData::copyCutIdxList = thumbView->selectionModel()->selectedIndexes();
 		cpMvdialog->exec(thumbView, destDir, false);
-		QString state = QString((GData::copyOp? tr("Copied ") : tr("Moved ")) +
+		QString state = QString((GData::copyOp? tr("Copied") : tr("Moved")) + " " +
 							tr("%n image(s)", "", cpMvdialog->nfiles));
 		setStatus(state);
 		delete(cpMvdialog);
@@ -2924,7 +2924,7 @@ void Phototonic::reloadThumbsSlot()
 	if (!checkPath.exists() || !checkPath.isReadable())
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to open folder: ") + thumbView->currentViewDir);
+		msgBox.critical(this, tr("Error"), tr("Failed to open folder:") + " " + thumbView->currentViewDir);
 		return;
 	}
 
@@ -2965,7 +2965,7 @@ void Phototonic::renameDir()
 	QFileInfo dirInfo = QFileInfo(fsTree->fsModel->filePath(selectedDirs[0]));
 
 	bool ok;
-	QString title = tr("Rename ") + dirInfo.completeBaseName();
+	QString title = tr("Rename") + " " + dirInfo.completeBaseName();
 	QString newDirName = QInputDialog::getText(this, title, 
 							tr("New name:"), QLineEdit::Normal, dirInfo.completeBaseName(), &ok);
 
@@ -2978,7 +2978,7 @@ void Phototonic::renameDir()
 	if(newDirName.isEmpty())
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Invalid name entered"));
+		msgBox.critical(this, tr("Error"), tr("Invalid name entered."));
 		selectCurrentViewDir();
 		return;
 	}
@@ -2989,7 +2989,7 @@ void Phototonic::renameDir()
 	if (!ok)
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to rename folder"));
+		msgBox.critical(this, tr("Error"), tr("Failed to rename folder."));
 		selectCurrentViewDir();
 		return;
 	}
@@ -3030,9 +3030,9 @@ void Phototonic::rename()
 
 	QString title = tr("Rename Image");
 	QString newImageName = QInputDialog::getText(this,
-									title, tr("Enter a new name for ")
-									+ QFileInfo(selectedImageFileName).fileName()
-									+ ":\t\t\t",
+									title, tr("Enter a new name for \"%1\":")
+									.arg(QFileInfo(selectedImageFileName).fileName())
+									+ "\t\t\t",
 									QLineEdit::Normal,
 									QFileInfo(selectedImageFileName).completeBaseName(),
 									&ok);
@@ -3043,7 +3043,7 @@ void Phototonic::rename()
 
 	if(newImageName.isEmpty()) {
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("No name entered"));
+		msgBox.critical(this, tr("Error"), tr("No name entered."));
 		return;
 	}
 
@@ -3076,7 +3076,7 @@ void Phototonic::rename()
 		}
 	} else {
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to rename image"));
+		msgBox.critical(this, tr("Error"), tr("Failed to rename image."));
 	}
 }
 
@@ -3087,7 +3087,7 @@ void Phototonic::deleteDir()
 	QString deletePath = fsTree->fsModel->filePath(selectedDirs[0]);
 	QModelIndex idxAbove = fsTree->indexAbove(selectedDirs[0]);
 	QFileInfo dirInfo = QFileInfo(deletePath);
-	QString question = tr("Permanently delete ") + dirInfo.completeBaseName() + tr(" and all of its contents?");
+	QString question = tr("Permanently delete \"%1\" and all of its contents?").arg(dirInfo.completeBaseName());
 
 	QMessageBox msgBox;
 	msgBox.setText(question);
@@ -3110,11 +3110,11 @@ void Phototonic::deleteDir()
 	if (!ok)
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to delete folder"));
+		msgBox.critical(this, tr("Error"), tr("Failed to delete folder."));
 		selectCurrentViewDir();
 	}
 
-	QString state = QString(tr("Removed ") + deletePath);
+	QString state = QString(tr("Removed \"%1\"").arg(deletePath));
 	setStatus(state);
 
 	if (thumbView->currentViewDir == deletePath) 
@@ -3144,7 +3144,7 @@ void Phototonic::createSubDirectory()
 	if(newDirName.isEmpty())
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Invalid name entered"));
+		msgBox.critical(this, tr("Error"), tr("Invalid name entered."));
 		selectCurrentViewDir();
 		return;
 	}
@@ -3155,12 +3155,12 @@ void Phototonic::createSubDirectory()
 	if (!ok)
 	{
 		QMessageBox msgBox;
-		msgBox.critical(this, tr("Error"), tr("Failed to create new folder"));
+		msgBox.critical(this, tr("Error"), tr("Failed to create new folder."));
 		selectCurrentViewDir();
 		return;
 	}
 
-	setStatus(tr("Created ") + newDirName);
+	setStatus(tr("Created \"%1\"").arg(newDirName));
 	fsTree->expand(selectedDirs[0]);
 }
 
@@ -3201,7 +3201,7 @@ void Phototonic::wheelEvent(QWheelEvent *event)
 void Phototonic::showNewImageWarning(QWidget *parent)
 {
 	QMessageBox msgBox;
-	msgBox.warning(parent, tr("Warning"), tr("Cannot perform action with temporary image"));
+	msgBox.warning(parent, tr("Warning"), tr("Cannot perform action with temporary image."));
 }
 
 bool Phototonic::removeDirOp(QString dirToDelete)
