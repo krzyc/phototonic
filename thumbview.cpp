@@ -238,11 +238,10 @@ void ThumbView::handleSelectionChanged(const QItemSelection&)
 
 	if (nSelected == 1) {
 		QString imageFullPath = thumbViewModel->item(indexesList.first().row())->data(FileNameRole).toString();
-		imageInfoReader.setFileName(imageFullPath);
 		QString key;
 		QString val;
 
-		QFileInfo imageInfo = QFileInfo(imageFullPath);
+		ImageInfo imageInfo = ImageInfo(imageFullPath);
 		infoView->addTitleEntry(tr("General"));
 
 		key = tr("File name");
@@ -261,28 +260,28 @@ void ThumbView::handleSelectionChanged(const QItemSelection&)
 		val = imageInfo.lastModified().toString(Qt::SystemLocaleShortDate);
 		infoView->addEntry(key, val);
 
-		if (imageInfoReader.size().isValid()) {
+		if (imageInfo.dimensions().isValid()) {
 			key = tr("Format");
-			val = imageInfoReader.format().toUpper();
+			val = imageInfo.format().toUpper();
 			infoView->addEntry(key, val);
 
 			key = tr("Resolution");
-			val = QString::number(imageInfoReader.size().width())
+			val = QString::number(imageInfo.dimensions().width())
 					+ "x"
-					+ QString::number(imageInfoReader.size().height());
+					+ QString::number(imageInfo.dimensions().height());
 			infoView->addEntry(key, val);
 
 			key = tr("Megapixel");
-			val = QString::number((imageInfoReader.size().width() * imageInfoReader.size().height()) / 1000000.0, 'f', 2);
+			val = QString::number((imageInfo.dimensions().width() * imageInfo.dimensions().height()) / 1000000.0, 'f', 2);
 			infoView->addEntry(key, val);
 
 			updateExifInfo(imageFullPath);
 			recentThumb = imageFullPath;
 		} else {
-			imageInfoReader.read();
-			key = tr("Error");
-			val = imageInfoReader.errorString();
-			infoView->addEntry(key, val);
+			//imageInfoReader.read();
+			//key = tr("Error");
+			//val = imageInfoReader.errorString();
+			//infoView->addEntry(key, val);
 		}
 	}
 	updateThumbsSelection();
@@ -553,7 +552,7 @@ finish:
 
 void ThumbView::initThumbs()
 {
-	thumbFileInfoList = thumbsDir->entryInfoList();
+	QStringList thumbFileList = thumbsDir->entryList();
 	static QStandardItem *thumbIitem;
 	static int currThumb;
 	static QPixmap emptyPixMap;
@@ -567,9 +566,9 @@ void ThumbView::initThumbs()
 		hintSize = QSize(thumbWidth, thumbHeight + 
 							(GData::showLabels? QFontMetrics(font()).height() + 5 : 0));
 
-	for (currThumb = 0; currThumb < thumbFileInfoList.size(); ++currThumb)
+	for (currThumb = 0; currThumb < thumbFileList.count(); ++currThumb)
 	{
-		thumbFileInfo = thumbFileInfoList.at(currThumb);
+		thumbFileInfo = thumbsDir->absoluteFilePath(thumbFileList.at(currThumb));
 		thumbIitem = new QStandardItem();
 		thumbIitem->setData(false, LoadedRole);
 		thumbIitem->setData(currThumb, SortRole);
@@ -599,7 +598,7 @@ void ThumbView::updateFoundDupesState(int duplicates, int filesScanned, int orig
 
 void ThumbView::findDupes(bool resetCounters)
 {
-	thumbFileInfoList = thumbsDir->entryInfoList();
+	QStringList thumbFileList = thumbsDir->entryList();
 	static int originalImages;
 	static int foundDups;
 	static int totalFiles;
@@ -607,20 +606,15 @@ void ThumbView::findDupes(bool resetCounters)
 		originalImages = totalFiles = foundDups = 0;
 	}
 
-	for (int currThumb = 0; currThumb < thumbFileInfoList.size(); ++currThumb) {
-		thumbFileInfo = thumbFileInfoList.at(currThumb);
-	    QCryptographicHash md5gen(QCryptographicHash::Md5);
+	for (int currThumb = 0; currThumb < thumbFileList.size(); ++currThumb) {
+		thumbFileInfo = thumbsDir->absoluteFilePath(thumbFileList.at(currThumb));
 	    QString currentFilePath = thumbFileInfo.filePath();
 
-	    QFile file(currentFilePath);
-		if (!file.open(QIODevice::ReadOnly)) {
+		QString md5 = thumbFileInfo.md5().toHex();
+		if (md5.isEmpty()) {
 		    continue;
 		}
 		totalFiles++;
-
-	    md5gen.addData(file.readAll());
-	    file.close();
-		QString md5 = md5gen.result().toHex();
 
 		if (dupImageHashes.contains(md5)) {
 			if (dupImageHashes[md5].duplicates < 1) {
@@ -637,7 +631,6 @@ void ThumbView::findDupes(bool resetCounters)
 			dupImage.duplicates = 0; 
 			dupImageHashes.insert(md5, dupImage);
 		}
-
 		
 		QApplication::processEvents();
 		updateFoundDupesState(foundDups, totalFiles, originalImages);
@@ -738,7 +731,7 @@ void ThumbView::addThumb(QString &imageFullPath)
 		hintSize = QSize(thumbWidth, thumbHeight + 
 							(GData::showLabels? QFontMetrics(font()).height() + 5 : 0));
 	
-	thumbFileInfo = QFileInfo(imageFullPath);
+	thumbFileInfo = ImageInfo(imageFullPath);
 	thumbIitem->setData(true, LoadedRole);
 	thumbIitem->setData(0, SortRole);
 	thumbIitem->setData(thumbFileInfo.filePath(), FileNameRole);

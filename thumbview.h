@@ -26,6 +26,7 @@
 #include "bookmarks.h"
 #include "infoview.h"
 #include "imageview.h"
+#include "imageinfo.h"
 
 struct DuplicateImage
 {
@@ -95,11 +96,9 @@ protected:
 	void mousePressEvent(QMouseEvent *event);
 	
 private:
-	QFileInfo thumbFileInfo;
-	QFileInfoList thumbFileInfoList;
+	ImageInfo thumbFileInfo;
 	QImage emptyImg;
 	QModelIndex currentIndex;
-	QImageReader imageInfoReader;
 	QWidget *mainWindow;
 	QMap<QString, DuplicateImage> dupImageHashes;
 	
