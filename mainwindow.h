@@ -273,7 +273,6 @@ private:
 	
 	QLineEdit *pathBar;
 	QLineEdit *filterBar;
-	QCompleter *pathComplete;
 	QLabel *stateLabel;
 	QDockWidget *fsDock;
 	QTabWidget *fsTab;
