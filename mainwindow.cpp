@@ -1221,9 +1221,18 @@ void Phototonic::updateExternalApps()
 void Phototonic::chooseExternalApp()
 {
 	AppMgmtDialog *dialog = new AppMgmtDialog(this);
+
+	if (GData::slideShowActive)
+		slideShow();
+	imageView->setCursorHiding(false);
+
 	dialog->exec();
 	updateExternalApps();
 	delete(dialog);
+
+	if (isFullScreen()) {
+		imageView->setCursorHiding(true);
+	}
 }
 
 void Phototonic::showSettings()
@@ -1318,6 +1327,10 @@ void Phototonic::moveImagesTo()
 
 void Phototonic::copyMoveImages(bool move)
 {
+	if (GData::slideShowActive)
+		slideShow();
+	imageView->setCursorHiding(false);
+
 	copyMoveToDialog = new CopyMoveToDialog(this, getSelectedPath(), move);
 	if (copyMoveToDialog->exec()) {
 		if (GData::layoutMode == thumbViewIdx) {
@@ -1330,6 +1343,10 @@ void Phototonic::copyMoveImages(bool move)
 		} else {
 			if (imageView->isNewImage()) 	{
 				showNewImageWarning(this);
+				if (isFullScreen()) {
+					imageView->setCursorHiding(true);
+				}
+
 				return;
 			}
 		
@@ -1356,6 +1373,10 @@ void Phototonic::copyMoveImages(bool move)
 	bookmarks->reloadBookmarks();
 	delete(copyMoveToDialog);
 	copyMoveToDialog = 0;
+
+	if (isFullScreen()) {
+		imageView->setCursorHiding(true);
+	}
 }
 
 void Phototonic::thumbsZoomIn()
@@ -1698,11 +1719,15 @@ void Phototonic::updateCurrentImage(int currentRow)
 
 void Phototonic::deleteViewerImage()
 {
-	if (imageView->isNewImage())
-	{
+	if (imageView->isNewImage()) {
 		showNewImageWarning(this);
 		return;
 	}
+
+	if (GData::slideShowActive)
+		slideShow();
+
+	imageView->setCursorHiding(false);
 
 	bool ok;
 	QFileInfo fileInfo = QFileInfo(imageView->currentImageFullPath);
@@ -1713,7 +1738,7 @@ void Phototonic::deleteViewerImage()
 	msgBox.setWindowTitle(tr("Delete image"));
 	msgBox.setIcon(QMessageBox::Warning);
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
+	msgBox.setDefaultButton(QMessageBox::Yes);
 	msgBox.setButtonText(QMessageBox::Yes, tr("Yes"));  
     msgBox.setButtonText(QMessageBox::Cancel, tr("Cancel"));  
 	int ret = msgBox.exec();
@@ -1731,10 +1756,16 @@ void Phototonic::deleteViewerImage()
 		{
 			QMessageBox msgBox;
 			msgBox.critical(this, tr("Error"), tr("Failed to delete image"));
+			if (isFullScreen()) {
+				imageView->setCursorHiding(true);
+			}
 			return;
 		}
 
 		updateCurrentImage(currentRow);
+	}
+	if (isFullScreen()) {
+		imageView->setCursorHiding(true);
 	}
 }
 
@@ -1768,7 +1799,7 @@ void Phototonic::deleteOp()
 	msgBox.setWindowTitle(tr("Delete images"));
 	msgBox.setIcon(QMessageBox::Warning);
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
+	msgBox.setDefaultButton(QMessageBox::Yes);
 	msgBox.setButtonText(QMessageBox::Yes, tr("Yes"));  
     msgBox.setButtonText(QMessageBox::Cancel, tr("Cancel"));  
 	int ret = msgBox.exec();
@@ -3154,8 +3185,14 @@ void Phototonic::rename()
 		return;
 	}
 
-	bool ok;
+	if (GData::slideShowActive)
+		slideShow();
+	imageView->setCursorHiding(false);
 
+	QString currnetFilePath = selectedImageFileName;
+	QFile currentFile(currnetFilePath);
+	QString newImageFullPath = thumbView->currentViewDir;
+	bool ok;
 	QString title = tr("Rename Image");
 	QString newImageName = QInputDialog::getText(this,
 									title, tr("Enter a new name for \"%1\":")
@@ -3166,20 +3203,16 @@ void Phototonic::rename()
 									&ok);
 
 	if (!ok) {
-		return;
+		goto cleanUp;
 	}
 
 	if(newImageName.isEmpty()) {
 		QMessageBox msgBox;
 		msgBox.critical(this, tr("Error"), tr("No name entered."));
-		return;
+		goto cleanUp;
 	}
 
 	newImageName += "." + QFileInfo(selectedImageFileName).suffix();
-	QString currnetFilePath = selectedImageFileName;
-	QFile currentFile(currnetFilePath);
-
-	QString newImageFullPath = thumbView->currentViewDir;
 	if (newImageFullPath.right(1) == QDir::separator()) {
 		newImageFullPath +=  newImageName;
 	} else {
@@ -3205,6 +3238,11 @@ void Phototonic::rename()
 	} else {
 		QMessageBox msgBox;
 		msgBox.critical(this, tr("Error"), tr("Failed to rename image."));
+	}
+
+cleanUp:
+	if (isFullScreen()) {
+		imageView->setCursorHiding(true);
 	}
 }
 
